@@ -40,7 +40,7 @@ commands:
           when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.Workflow_ID >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/9GE4jRtKznmVKRfvdBABBe/migration_<< parameters.Workflow_ID >>)
 
             # Logic for reverting the database state
             if (( $SUCCESS == 1 ));
@@ -49,7 +49,7 @@ commands:
               npm install
               npm run migration:revert
             fi
-            
+
   install_awscli:
     description: Install AWS CLI v2
     steps:
@@ -271,7 +271,8 @@ jobs:
       - image: cimg/python:3.10
     steps:
       - checkout
-      - restore-backend-cache
+      - restore-backend:
+          keys: [backend-build]
       - install_awscli
       - install_nodejs
       - attach_workspace:
