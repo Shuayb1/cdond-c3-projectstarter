@@ -13,11 +13,11 @@ commands:
           name: Destroy environments
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-<<parameters.WorkflowID>> --recursive
+            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
             aws cloudformation delete-stack \
-            --stack-name udapeople-backend-<<parameters.WorkflowID>>
+            --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
             aws cloudformation delete-stack \
-            --stack-name udapeople-frontend-<<parameters.WorkflowID>>
+            --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
   # destroy-environment:
   #   steps:
   #     - run:
@@ -99,6 +99,7 @@ commands:
             # Use n version manager to use Node.js v13.8.0
             sudo npm install --global n
             sudo n 13.8.0
+  
   restore-backend-cache:
     steps:
       - restore_cache:
@@ -426,7 +427,7 @@ jobs:
             echo $URL
             if curl -s ${URL} | grep "Welcome"
             then
-              return 1
+              return 0
             else
               return 1
             fi
@@ -435,21 +436,34 @@ jobs:
       - revert-migrations:
           WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
 
-#   cloudfront-update:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Update cloudfront distribution
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
-
+  # cloudfront-update:
+  #   docker:
+  #     - image: amazon/aws-cli
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: Install dependencies
+  #         command: |
+  #           yum install -y tar gzip npm nodejs
+  #     - run:
+  #         name: Update cloudfront distribution
+  #         command: |
+  #           export OldWorkflowID=$(aws cloudformation \
+  #             list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+  #             --no-paginate --output text)
+  #           echo $OldWorkflowID >> ~/OldWorkflowID.txt
+  #           cat ~/OldWorkflowID.txt
+  #           aws cloudformation deploy \
+  #           --template-file .circleci/files/cloudfront.yml \
+  #           --stack-name InitialStack \
+  #           --parameter-overrides WorkflowID=${CIRCLE_WORKFLOW_ID:0:7} \
+  #           --tags project=udapeople
+  #           echo OldWorkflowID= "${OldWorkflowID}"
+  #           echo Current Workflow ID: "${CIRCLE_WORKFLOW_ID:0:7}"
+  #     - persist_to_workspace:
+  #         root: ~/
+  #         paths: 
+  #          - OldWorkflowID.txt               
 # cleanup:
 #     docker:
 #       # Docker image here
