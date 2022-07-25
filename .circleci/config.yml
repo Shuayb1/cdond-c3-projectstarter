@@ -81,7 +81,10 @@ commands:
             # Use n version manager to use Node.js v13.8.0
             sudo npm install --global n
             sudo n 13.8.0
-  
+  restore-backend-cache:
+    steps:
+      - restore_cache:
+          keys: [backend-build]
           
 jobs:
   build-frontend:
@@ -271,8 +274,7 @@ jobs:
       - image: cimg/python:3.10
     steps:
       - checkout
-      - restore-backend-cache:
-          keys: [backend-build]
+      - restore-backend-cache
       - install_awscli
       - install_nodejs
       - attach_workspace:
