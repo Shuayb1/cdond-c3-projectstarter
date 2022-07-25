@@ -18,25 +18,38 @@ commands:
             --stack-name udapeople-backend-<<parameters.WorkflowID>>
             aws cloudformation delete-stack \
             --stack-name udapeople-frontend-<<parameters.WorkflowID>>
+  # destroy-environment:
+  #   steps:
+  #     - run:
+  #         name: Destroy Environment
+  #         when: on_fail
+  #         command: |
+  #            aws cloudformation delete-stack --stack-name udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}
+  #            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+  #            aws cloudformation delete-stack --stack-name udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}
 
   revert-migrations:
-    description: Revert the last migration if successfully run in the current workflow.
+    description: Revert the last migration, if any were executed during the current workflow
     parameters:
-      # Add parameter here     
+      Workflow_ID:
+        type: string
+        default: ${CIRCLE_WORKFLOW_ID:0:7}
     steps:
       - run:
           name: Revert migrations
-          # Add when this will run
+          when: on_fail
           command: |
             # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
-            if(( $SUCCESS==1 )); 
+            SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.Workflow_ID >>)
+
+            # Logic for reverting the database state
+            if (( $SUCCESS == 1 ));
             then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
             fi
+            
   install_awscli:
     description: Install AWS CLI v2
     steps:
@@ -68,10 +81,7 @@ commands:
             # Use n version manager to use Node.js v13.8.0
             sudo npm install --global n
             sudo n 13.8.0
-  restore-backend-cache:
-    steps:
-      - restore_cache:
-          keys: [backend-build]
+  
           
 jobs:
   build-frontend:
@@ -284,14 +294,14 @@ jobs:
           command: |   
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-                curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+              curl https://kvdb.io/9GE4jRtKznmVKRfvdBABBe/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             fi
-      # - revert-migrations
-      # - destroy-environment
+      - revert-migrations
+      - destroy-environment
 
      # rollback on failure    
-      - destroy-environment:
-          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}  
+      # - destroy-environment:
+      #     WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}  
 
 #   deploy-frontend:
 #     docker:
