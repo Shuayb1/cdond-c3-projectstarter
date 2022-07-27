@@ -320,7 +320,8 @@ jobs:
             fi
 
       # rollback on failure
-      - revert-migrations
+      - revert-migrations:
+          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
       #- destroy-environment
       - destroy-environment:
           WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}  
@@ -355,10 +356,11 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-      - destroy-environment:
-          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
           WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+      
       # Here's where you will add some code to rollback on failure      
                     
   deploy-backend:
@@ -431,10 +433,11 @@ jobs:
             else
               return 1
             fi
-      - destroy-environment:
-          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
       - revert-migrations:
           WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+      
 
   cloudfront-update:
     docker:
@@ -460,10 +463,15 @@ jobs:
             --tags project=udapeople
             echo OldWorkflowID= "${OldWorkflowID}"
             echo Current Workflow ID: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - persist_to_workspace:
-          root: ~/
-          paths: 
-           - OldWorkflowID.txt               
+      - revert-migrations:
+          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+      - destroy-environment:
+          WorkflowID: ${CIRCLE_WORKFLOW_ID:0:7}
+      
+      # - persist_to_workspace:
+      #     root: ~/
+      #     paths: 
+      #      - OldWorkflowID.txt               
   
   cleanup:
     docker:
