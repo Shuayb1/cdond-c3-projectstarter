@@ -334,10 +334,12 @@ jobs:
       - image: cimg/python:3.10
     steps:
       - checkout
+      - install_awscli
+      - install_nodejs
       - run:
           name: Install dependencies
           command: |
-            apk add --update nodejs ansible tar npm curl gzip aws-cli
+            sudo apt install -y tar gzip
       - attach_workspace:
           at: ~/
       - run:
@@ -373,12 +375,19 @@ jobs:
       - checkout
       - add_ssh_keys:
           fingerprints: ["43:fa:05:30:79:cd:98:3d:6c:81:17:f1:f5:85:f5:0a"]
+      - install_awscli
+      - install_nodejs
+      - install_ansible
+      # - run:
+      #     name: Install dependencies
+      #     command: |
+      #       apk add --update nodejs ansible tar npm curl gzip aws-cli
+      - attach_workspace:
+          at: ~/
       - run:
           name: Install dependencies
           command: |
-            apk add --update nodejs ansible tar npm curl gzip aws-cli
-      - attach_workspace:
-          at: ~/
+            sudo apt install -y tar gzip
       - run:
           name: Deploy backend    
           command: |
@@ -403,10 +412,8 @@ jobs:
       - image: cimg/python:3.10
     steps:
       - checkout
-      - run:
-          name: Install dependencies
-          command: |
-            apk add --update nodejs ansible tar npm curl gzip aws-cli
+      - install_nodejs
+      - install_awscli
       - attach_workspace:
           at: ~/
       - run:
