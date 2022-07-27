@@ -495,8 +495,7 @@ jobs:
               echo "------------------Stack "udapeople-backend-${OldWorkflowID}" Deleted----------------"
             else
               echo "------------------cleanup unsuccessful!------------"
-            fi         
-            
+            fi
 
 workflows:
   default:
